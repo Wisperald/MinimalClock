@@ -3,6 +3,7 @@ package com.personal.clock.alarm
 import com.personal.clock.data.AlarmRepository
 import com.personal.clock.domain.Alarm
 import com.personal.clock.domain.AlarmScheduleCalculator
+import com.personal.clock.notification.Notifications
 import com.personal.clock.util.TimeSource
 import com.personal.clock.widget.WidgetUpdater
 import kotlinx.coroutines.sync.Mutex
@@ -16,6 +17,7 @@ class AlarmController(
     private val repository: AlarmRepository,
     private val scheduler: AlarmScheduler,
     private val widgets: WidgetUpdater,
+    private val notifications: Notifications,
     private val time: TimeSource,
 ) {
     private val mutex = Mutex()
@@ -40,6 +42,7 @@ class AlarmController(
 
     suspend fun delete(id: Long) = mutex.withLock {
         scheduler.cancelAlarm(id)
+        notifications.cancelAlarmStatus(id)
         repository.delete(id)
         widgets.updateAll()
     }
@@ -69,6 +72,9 @@ class AlarmController(
 
     private suspend fun sync(alarm: Alarm) {
         schedule(alarm)
+        // A "snoozed until …" notification must not outlive the snooze (cancelled, edited,
+        // switched off or dismissed). Callers post "snoozed"/"missed" notices after sync.
+        if (!alarm.isSnoozedAt(time.wall())) notifications.cancelAlarmStatus(alarm.id)
         widgets.updateAll()
     }
 
