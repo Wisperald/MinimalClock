@@ -42,7 +42,7 @@ class AppContainer(context: Context) {
     val widgetUpdater = WidgetUpdater(appContext, alarmRepository, settingsRepository)
     private val scheduler = AlarmScheduler(appContext)
 
-    val alarmController = AlarmController(alarmRepository, scheduler, widgetUpdater, time)
+    val alarmController = AlarmController(alarmRepository, scheduler, widgetUpdater, notifications, time)
     val timerController = TimerController(timerRepository, scheduler, notifications, time) {
         TimeText.is24Hour(appContext, settingsRepository.current().timeFormat)
     }

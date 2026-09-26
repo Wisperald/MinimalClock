@@ -74,6 +74,12 @@ android {
         }
     }
 
+    lint {
+        // Version-freshness checks query remote repositories on every run and only report
+        // "newer version available"; keep CI deterministic.
+        disable += setOf("NewerVersionAvailable", "GradleDependency", "AndroidGradlePluginVersion")
+    }
+
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
